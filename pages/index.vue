@@ -1,22 +1,11 @@
 <template>
-  <v-layout
-    column
-    justify-center
-    align-center
-  >
-    <v-flex
-      xs12
-      sm8
-      md6
-    >
-      <v-tabs>
-        <v-tab>Item One</v-tab>
-        <v-tab>Item Two</v-tab>
-        <v-tab>Item Three</v-tab>
+  <v-layout>
+    <v-flex>
+      <v-tabs grow>
+        <v-tab>設定</v-tab>
+        <v-tab>新規</v-tab>
+        <v-tab>受信一覧</v-tab>
       </v-tabs>
-      <v-card>
-        <p>あいう</p>
-      </v-card>
     </v-flex>
   </v-layout>
 </template>
