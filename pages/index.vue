@@ -28,19 +28,60 @@
           </v-card>
         </v-tab-item>
       </v-tabs-items>
+      <label>
+        <span>
+          お名前:
+        </span>
+        <input
+          type="text"
+          v-model="name"
+        >
+      </label>
+      <label>
+        <span>
+          email:
+        </span>
+        <input
+          type="text"
+          v-model="email"
+        >
+      </label>
+      <button
+        type="button"
+        @click="submit"
+      >
+        送信
+      </button>
     </v-flex>
   </v-layout>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue } from 'vue-property-decorator';
+import firebase from '@/plugins/firebase';
 
 @Component
 export default class index extends Vue {
 
   private tab: string = "";
   private items = ["設定", "新規", "受信一覧"];
-  private text = "あいうえお"
+  private text = "あいうえお";
+
+  private name = "";
+  private email = "";
+
+  submit() {
+    const db = firebase.firestore();
+    let dbUsers = db.collection('users');
+    dbUsers
+      .add({
+        name: this.name,
+        email: this.email,
+      })
+      .then(ref => {
+        console.log('Add ID: ', ref.id)
+      })
+  }
 
 }
 </script>
