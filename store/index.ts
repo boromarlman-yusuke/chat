@@ -1,0 +1,55 @@
+import { Mutation, Action, VuexModule, Module } from "vuex-module-decorators";
+import firebase from '@/plugins/firebase';
+
+@Module({name: "login-module" })
+export default class IndexState extends VuexModule {
+  
+
+  private userUid = "";
+  private userName = "";
+  private errorMessage = "";
+
+  
+  @Mutation
+  public setUserUid(userUid: string) {
+    this.userUid = userUid;
+  }
+
+  @Mutation
+  public setUserName(userName: string) {
+    this.userName = userName;
+  }
+
+  @Mutation
+  public setErrorMessage(errorMessage: string) {
+    this.errorMessage = errorMessage;
+  }
+
+  @Action
+  login() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      const userData = {
+        id: result.user!.uid,
+        name: result.user!.displayName
+      };
+
+      firebase.firestore().collection('users').doc(result.user!.uid).set(userData);
+      this.setUserUid(userData.id!);
+      this.setUserName(userData.name!);
+
+    }).catch(error => {
+      this.setErrorMessage = error.message;
+    })
+  }
+
+  get UserUid() {
+    return this.userUid;
+  }
+
+  get UserName() {
+    return this.userName;
+  }
+
+}

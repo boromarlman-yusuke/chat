@@ -1,86 +1,28 @@
 <template>
   <v-layout>
     <v-flex>
-      <v-tabs
-        v-model="tab"
-        background-color="transparent"
-        color="basil"
-        grow
-      >
-        <v-tab
-          v-for="item in items"
-          :key="item"
-        >
-          {{ item }}
-        </v-tab>
-      </v-tabs>
-
-      <v-tabs-items v-model="tab">
-        <v-tab-item
-          v-for="item in items"
-          :key="item"
-        >
-          <v-card
-            color="basil"
-            flat
-          >
-            <v-card-text>{{ text }}</v-card-text>
-          </v-card>
-        </v-tab-item>
-      </v-tabs-items>
-      <label>
-        <span>
-          お名前:
-        </span>
-        <input
-          type="text"
-          v-model="name"
-        >
-      </label>
-      <label>
-        <span>
-          email:
-        </span>
-        <input
-          type="text"
-          v-model="email"
-        >
-      </label>
-      <button
-        type="button"
-        @click="submit"
-      >
-        送信
-      </button>
+      <div class="container">
+        <p class="title is-1 is-spaced">user: {{ $store.getters.getUserName }}</p>
+        <v-btn class="button is-primary is-rounded" @click="login">
+          ログイン
+        </v-btn>
+      </div>
     </v-flex>
   </v-layout>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import { getModule } from "vuex-module-decorators";
 import firebase from '@/plugins/firebase';
+import IndexState from '@/store/index';
 
 @Component
 export default class index extends Vue {
+  private indexModule = getModule(IndexState, this.$store);
 
-  private tab: string = "";
-  private items = ["設定", "新規", "受信一覧"];
-  private text = "あいうえお";
-
-  private name = "";
-  private email = "";
-
-  submit() {
-    const db = firebase.firestore();
-    let dbUsers = db.collection('users');
-    dbUsers
-      .add({
-        name: this.name,
-        email: this.email,
-      })
-      .then(ref => {
-        console.log('Add ID: ', ref.id)
-      })
+  login() {
+    this.indexModule.login();
   }
 
 }
