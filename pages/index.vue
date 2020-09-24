@@ -23,6 +23,7 @@ export default class index extends Vue {
 
   login() {
     this.indexModule.login();
+    this.$router.push('/main')
   }
 
 }
