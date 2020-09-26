@@ -112,18 +112,32 @@ export default class index extends Vue {
     gender: ""
   };
 
-  users: User[] = [];
-
-  sentTargets: string[] =[];
-
   target: User = {
     id: "",
     name: "",
     gender: ""
   };
 
+  users: User[] = [];
+  sentTargets: string[] =[];
   roomId: string = "";
   latestMessageTimeStamp: number = Date.now();
+
+  init() {
+    this.user = {
+      id: "",
+      name: "",
+      gender: ""
+    };
+    this.target = {
+      id: "",
+      name: "",
+      gender: ""
+    }
+    this.users = [];
+    this.sentTargets = [];
+    this.roomId = "";
+  }
   
 
   async send() {
@@ -155,7 +169,8 @@ export default class index extends Vue {
 
     // 相手のroomを作成する
     // 自分のroomを作成する
-    this.createRoom();
+    this.createTargetRoom();
+    this.createMyRoom();
     console.log("room作成きてる");
 
     // messagesに作成する
@@ -163,7 +178,7 @@ export default class index extends Vue {
     console.log("messagesきてる");
 
     // 初期化
-    
+    this.init();
   }
 
   async collectUnsentTargetList() {
@@ -174,13 +189,13 @@ export default class index extends Vue {
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          this.user.id = data.id;
-          this.user.name = data.name;
-          this.user.gender = data.gender;
-
-          console.log("data:" + data);
-          
-          this.users.push(this.user);
+          if(data.id !== this.indexModule.UserUid) {
+            this.users.push({
+              id: data.id,
+              name: data.name,
+              gender: data.gender
+            });
+          }
         })
       })
     console.log("out:collectUnsentTargetList");
@@ -196,24 +211,10 @@ export default class index extends Vue {
           const data = doc.data();
           this.sentTargets.push(data.sessionedUserId);
         })
-      })
+      }).catch(function(error) {
+        console.log("Error getting collectSentTargetList:", error);
+      });
     console.log("out:collectSentTargetList");
-  }
-
-  choiceTarget() {
-    console.log("in:choiceTarget");
-    console.log("users:" + this.users);
-    this.users.forEach(u => {
-      const target: string | undefined = this.sentTargets.find(s => s === u.id)
-      
-      console.log("target:" + target);
-      if(target === undefined || target === "") {
-        this.target = u;
-        console.log("ターゲット入ってる？");
-        return 
-      }
-    })
-    console.log("out:choiceTarget");
   }
 
   shuffle() {
@@ -223,30 +224,39 @@ export default class index extends Vue {
     }
   }
 
-  async createRoom() {
-    const db = firebase.firestore();
+  choiceTarget() {
+    console.log("in:choiceTarget");
+    for (var user of this.users) {
+      const target: string | undefined = this.sentTargets.find(s => s === user.id)
+      if(target === undefined || target === "") {
+        this.target = user;
+        break;
+      }
+    }
+    console.log("out:choiceTarget");
+  }
 
-    console.log("target.id");
-    console.log(this.target.id);
-
-    console.log("indexModule.UserUid");
-    console.log(this.indexModule.UserUid);
-    
-
+  async createTargetRoom() {
+    console.log("相手room作成");    
     // 相手room作成
-    let dbUsers = db.collection('rooms').doc(this.target.id).collection("havingRooms").doc(this.indexModule.UserUid);
+    const db = firebase.firestore();
+    const target = db.collection('rooms').doc(this.target.id).collection("havingRooms").doc(this.indexModule.UserUid);
     this.latestMessageTimeStamp = Date.now();
-    await dbUsers
+    await target
       .set({
         enable: true,
         roomId: this.roomId,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })
-    
+  }
+
+  async createMyRoom() {
+    console.log("自分room作成");
     // 自分room作成
-    dbUsers = db.collection('rooms').doc(this.indexModule.UserUid).collection("havingRooms").doc(this.target.id);
+    const db = firebase.firestore();
+    const me = db.collection('rooms').doc(this.indexModule.UserUid).collection("havingRooms").doc(this.target.id);
     this.latestMessageTimeStamp = Date.now();
-    await dbUsers
+    await me
       .set({
         enable: true,
         roomId: this.roomId,
