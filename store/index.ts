@@ -7,6 +7,7 @@ export default class IndexState extends VuexModule {
 
   private userUid = "";
   private userName = "";
+  private userGender = "";
   private errorMessage = "";
 
   
@@ -21,6 +22,11 @@ export default class IndexState extends VuexModule {
   }
 
   @Mutation
+  public setGender(userGender: string) {
+    this.userGender = userGender;
+  }
+
+  @Mutation
   public setErrorMessage(errorMessage: string) {
     this.errorMessage = errorMessage;
   }
@@ -32,12 +38,14 @@ export default class IndexState extends VuexModule {
     .then((result) => {
       const userData = {
         id: result.user!.uid,
-        name: result.user!.displayName
+        name: result.user!.displayName,
+        gender: "男" // TODO:選択できるようにする
       };
 
       firebase.firestore().collection('users').doc(result.user!.uid).set(userData);
       this.setUserUid(userData.id!);
       this.setUserName(userData.name!);
+
 
     }).catch(error => {
       this.setErrorMessage = error.message;
@@ -50,6 +58,10 @@ export default class IndexState extends VuexModule {
 
   get UserName() {
     return this.userName;
+  }
+
+  get UserGender() {
+    return this.userGender;
   }
 
 }
