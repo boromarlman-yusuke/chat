@@ -56,8 +56,21 @@
             flat
             v-if="isRecieve(item)"
           >
+            <v-list two-line subheader>
+
+              <v-list-item
+                v-for="(item) in overViewList"
+                :key="item.latestMessageTimeStamp"
+                @click="openRoom(item)"
+              >
+                <v-list-item-content>
+                  <v-list-item-title v-text="item.latestMessageTimeStamp"></v-list-item-title>
+                  <v-list-item-subtitle v-text="item.latestMessage"></v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+            </v-list>
           </v-card>
-        
         </v-tab-item>
       </v-tabs-items>
     </v-flex>
@@ -65,7 +78,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import firebase from '@/plugins/firebase';
 import { getModule } from "vuex-module-decorators";
 import IndexState from '@/store/index';
@@ -75,6 +88,13 @@ interface User {
   name: string;
   gender: string;
 };
+
+interface Overview {
+  gender: string;
+  name: string;
+  latestMessageTimeStamp: number;
+  latestMessage: string;
+}
 
 @Component
 export default class index extends Vue {
@@ -90,6 +110,12 @@ export default class index extends Vue {
   private selectedGender = "男女";
   private message = "";
   
+  @Watch("tab")
+  async updateOverviewList() {
+    if (this.tab == "2") {
+      await this.getOverview();
+    }
+  }
 
   isSetting(item: string) {
     if(item === "設定") return true;
@@ -102,8 +128,37 @@ export default class index extends Vue {
   }
 
   isRecieve(item: string) {
-    if(item === "受信設定") return true;
+    if(item === "受信一覧") return true;
     return false;
+  }
+
+  getOptions = {
+    source: 'cache'
+  };
+
+  overViewList: Overview[] = [];
+
+  async getOverview() {
+    this.overViewList = [];
+
+    const db = firebase.firestore();
+    await db.collection("rooms").doc(this.indexModule.UserUid).collection("havingRooms").where("enable", "==", true)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          this.overViewList.push({
+            gender: data.gender,
+            name: data.name,
+            latestMessageTimeStamp: data.latestMessageTimeStamp,
+            latestMessage: data.latestMessage
+          });
+        })
+      })
+  }
+
+  openRoom(room: Overview) {
+
   }
   
   user: User = {
@@ -119,7 +174,7 @@ export default class index extends Vue {
   };
 
   users: User[] = [];
-  sentTargets: string[] =[];
+  sentTargets: string[] = [];
   roomId: string = "";
   latestMessageTimeStamp: number = Date.now();
 
@@ -246,6 +301,9 @@ export default class index extends Vue {
       .set({
         enable: true,
         roomId: this.roomId,
+        name: this.target.name,
+        gender: this.target.gender,
+        latestMessage: this.message,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })
   }
@@ -260,6 +318,9 @@ export default class index extends Vue {
       .set({
         enable: true,
         roomId: this.roomId,
+        name: this.target.name,
+        gender: this.target.gender,
+        latestMessage: this.message,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })
   }
