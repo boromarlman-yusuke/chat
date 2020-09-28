@@ -9,6 +9,7 @@ export default class IndexState extends VuexModule {
   private userName = "";
   private userGender = "";
   private errorMessage = "";
+  private roomId = "";
 
   
   @Mutation
@@ -30,6 +31,12 @@ export default class IndexState extends VuexModule {
   public setErrorMessage(errorMessage: string) {
     this.errorMessage = errorMessage;
   }
+
+  @Mutation
+  public setRoomId(roomId: string) {
+    this.roomId = roomId;
+  }
+
 
   @Action
   login() {
@@ -62,6 +69,10 @@ export default class IndexState extends VuexModule {
 
   get UserGender() {
     return this.userGender;
+  }
+
+  get RoomId() {
+    return this.roomId;
   }
 
 }

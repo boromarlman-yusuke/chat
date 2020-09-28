@@ -90,6 +90,7 @@ interface User {
 };
 
 interface Overview {
+  roomId: string;
   gender: string;
   name: string;
   latestMessageTimeStamp: number;
@@ -148,6 +149,7 @@ export default class index extends Vue {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           this.overViewList.push({
+            roomId: data.roomId,
             gender: data.gender,
             name: data.name,
             latestMessageTimeStamp: data.latestMessageTimeStamp,
@@ -158,7 +160,8 @@ export default class index extends Vue {
   }
 
   openRoom(room: Overview) {
-
+    this.indexModule.setRoomId(room.roomId);
+    this.$router.push('/main/chatRoom');
   }
   
   user: User = {
@@ -327,9 +330,9 @@ export default class index extends Vue {
 
   async createMessage() {
     const db = firebase.firestore();
-    let dbUsers = db.collection('messages').doc(this.roomId);
+    let dbUsers = db.collection('contents').doc(this.roomId).collection("messages");
     await dbUsers
-      .set({
+      .add({
         message: this.message,
         userId: this.indexModule.UserUid,
         latestMessageTimeStamp: this.latestMessageTimeStamp
