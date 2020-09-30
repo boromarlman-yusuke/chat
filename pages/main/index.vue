@@ -93,7 +93,7 @@ interface Overview {
   roomId: string;
   gender: string;
   name: string;
-  latestMessageTimeStamp: number;
+  latestMessageTimeStamp: any;
   latestMessage: string;
 }
 
@@ -144,15 +144,14 @@ export default class index extends Vue {
 
     const db = firebase.firestore();
     await db.collection("rooms").doc(this.indexModule.UserUid).collection("havingRooms").where("enable", "==", true)
-      .get()
-      .then((querySnapshot) => {
+      .onSnapshot((querySnapshot) => {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           this.overViewList.push({
             roomId: data.roomId,
             gender: data.gender,
             name: data.name,
-            latestMessageTimeStamp: data.latestMessageTimeStamp,
+            latestMessageTimeStamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja"),
             latestMessage: data.latestMessage
           });
         })
@@ -179,7 +178,7 @@ export default class index extends Vue {
   users: User[] = [];
   sentTargets: string[] = [];
   roomId: string = "";
-  latestMessageTimeStamp: number = Date.now();
+  latestMessageTimeStamp = firebase.firestore.FieldValue.serverTimestamp();
 
   init() {
     this.user = {
@@ -227,6 +226,7 @@ export default class index extends Vue {
 
     // 相手のroomを作成する
     // 自分のroomを作成する
+    this.latestMessageTimeStamp = firebase.firestore.FieldValue.serverTimestamp();
     this.createTargetRoom();
     this.createMyRoom();
     console.log("room作成きてる");
@@ -299,7 +299,6 @@ export default class index extends Vue {
     // 相手room作成
     const db = firebase.firestore();
     const target = db.collection('rooms').doc(this.target.id).collection("havingRooms").doc(this.indexModule.UserUid);
-    this.latestMessageTimeStamp = Date.now();
     await target
       .set({
         enable: true,
@@ -316,7 +315,7 @@ export default class index extends Vue {
     // 自分room作成
     const db = firebase.firestore();
     const me = db.collection('rooms').doc(this.indexModule.UserUid).collection("havingRooms").doc(this.target.id);
-    this.latestMessageTimeStamp = Date.now();
+    
     await me
       .set({
         enable: true,

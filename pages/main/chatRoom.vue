@@ -54,18 +54,20 @@ export default class index extends Vue {
   async created() {
     const db = firebase.firestore();
     await db.collection("contents").doc(this.indexModule.RoomId).collection("messages")
-      .get()
-      .then((querySnapshot) => {
+      .onSnapshot((querySnapshot) => {
+        this.messages = [];
         querySnapshot.forEach((doc) => {
+          
           const data = doc.data();
           this.messages.push({
             name: data.userId,
             content: data.message,
-            timestamp: data.latestMessageTimeStamp
+            timestamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja")
           });
         })
       })
   }
+
   async createMessage() {
     const db = firebase.firestore();
     let dbUsers = db.collection('contents').doc(this.indexModule.RoomId).collection("messages");
@@ -73,7 +75,7 @@ export default class index extends Vue {
       .add({
         message: this.content,
         userId: this.indexModule.UserUid,
-        latestMessageTimeStamp: Date.now()
+        latestMessageTimeStamp: firebase.firestore.FieldValue.serverTimestamp()
       })
   }
 
