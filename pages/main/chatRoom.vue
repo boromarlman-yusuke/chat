@@ -3,9 +3,9 @@
   <v-container fluid style="padding: 0;">
     <!-- <div class="chat-container" v-on:scroll="onScroll" ref="chatContainer" > -->
     <div class="chat-container">
-      <div class="message" v-for="(message,index) in messages" v-bind:key="index" :class="{own: message.name == userId}">
-        <div class="username" v-if="index>0 && messages[index-1].user != message.name">{{message.name}}</div>
-        <div class="username" v-if="index == 0">{{message.name}}</div>
+      <div class="message" v-for="(message,index) in messages" v-bind:key="index" :class="{own: message.userId == myUserId}">
+        <div class="username" v-if="index>0 && messages[index-1].userId != message.userId">{{userName}}</div>
+        <div class="username" v-if="index == 0">{{userName(message.userId)}}</div>
         <div style="margin-top: 5px"></div>
           <div class="content">
             <div v-html="message.content"></div>
@@ -35,7 +35,7 @@ import { getModule } from "vuex-module-decorators";
 import IndexState from '@/store/index';
 
 interface Message {
-  name: string,
+  userId: string,
   content: string,
   timestamp: string
 }
@@ -45,11 +45,22 @@ interface Message {
 export default class index extends Vue {
   private indexModule = getModule(IndexState, this.$store);
 
-  private userId = this.indexModule.UserUid;
+  private myUserId = this.indexModule.UserUid;
 
   private messages: Message[] =  [];
 
   private content: string = "";
+
+  private targetName = "a";
+  private myName = "i";
+
+  userName(userId: string) {
+    if (this.myUserId === userId) {
+      return this.myName;
+    } else {
+      return this.targetName;
+    }
+  }
 
   async created() {
     const db = firebase.firestore();
@@ -60,13 +71,31 @@ export default class index extends Vue {
           
           const data = doc.data();
           this.messages.push({
-            name: data.userId,
+            userId: data.userId,
             content: data.message,
             timestamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja")
           });
         })
       })
   }
+
+  async getTargetName() {
+    const db = firebase.firestore();
+    await db.collection("users").doc()
+    .onSnapshot((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        this.overViewList.push({
+          roomId: data.roomId,
+          gender: data.gender,
+          name: data.name,
+          latestMessageTimeStamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja"),
+          latestMessage: data.latestMessage
+        });
+      })
+    })
+  }
+
 
   async createMessage() {
     const db = firebase.firestore();
