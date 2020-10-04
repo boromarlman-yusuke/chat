@@ -65,6 +65,7 @@
               >
                 <v-list-item-content>
                   <v-list-item-title v-text="item.latestMessageTimeStamp"></v-list-item-title>
+                  <v-list-item-title v-text="item.name"></v-list-item-title>
                   <v-list-item-subtitle v-text="item.latestMessage"></v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -82,20 +83,13 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 import firebase from '@/plugins/firebase';
 import { getModule } from "vuex-module-decorators";
 import IndexState from '@/store/index';
+import Overview from '@/module/OverView';
 
 interface User {
   id: string;
   name: string;
   gender: string;
 };
-
-interface Overview {
-  roomId: string;
-  gender: string;
-  name: string;
-  latestMessageTimeStamp: any;
-  latestMessage: string;
-}
 
 @Component
 export default class index extends Vue {
@@ -303,8 +297,8 @@ export default class index extends Vue {
       .set({
         enable: true,
         roomId: this.roomId,
-        name: this.target.name,
-        gender: this.target.gender,
+        name: this.indexModule.UserName,
+        gender: this.indexModule.UserGender,
         latestMessage: this.message,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })
@@ -320,8 +314,8 @@ export default class index extends Vue {
       .set({
         enable: true,
         roomId: this.roomId,
-        name: this.target.name,
-        gender: this.target.gender,
+        name: this.indexModule.UserName,
+        gender: this.indexModule.UserGender,
         latestMessage: this.message,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })
@@ -333,6 +327,7 @@ export default class index extends Vue {
     await dbUsers
       .add({
         message: this.message,
+        name: this.indexModule.UserName,
         userId: this.indexModule.UserUid,
         latestMessageTimeStamp: this.latestMessageTimeStamp
       })

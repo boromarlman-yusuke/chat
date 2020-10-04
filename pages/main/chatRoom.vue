@@ -4,8 +4,8 @@
     <!-- <div class="chat-container" v-on:scroll="onScroll" ref="chatContainer" > -->
     <div class="chat-container">
       <div class="message" v-for="(message,index) in messages" v-bind:key="index" :class="{own: message.userId == myUserId}">
-        <div class="username" v-if="index>0 && messages[index-1].userId != message.userId">{{userName}}</div>
-        <div class="username" v-if="index == 0">{{userName(message.userId)}}</div>
+        <div class="username" v-if="index>0 && messages[index-1].userId != message.userId">{{message.name + "  " + message.timestamp }}</div>
+        <div class="username" v-if="index == 0">{{message.name + "  " + message.timestamp }}</div>
         <div style="margin-top: 5px"></div>
           <div class="content">
             <div v-html="message.content"></div>
@@ -36,6 +36,7 @@ import IndexState from '@/store/index';
 
 interface Message {
   userId: string,
+  name: string,
   content: string,
   timestamp: string
 }
@@ -44,34 +45,25 @@ interface Message {
 @Component
 export default class index extends Vue {
   private indexModule = getModule(IndexState, this.$store);
-
   private myUserId = this.indexModule.UserUid;
-
   private messages: Message[] =  [];
-
   private content: string = "";
-
   private targetName = "a";
   private myName = "i";
 
-  userName(userId: string) {
-    if (this.myUserId === userId) {
-      return this.myName;
-    } else {
-      return this.targetName;
-    }
-  }
-
   async created() {
     const db = firebase.firestore();
-    await db.collection("contents").doc(this.indexModule.RoomId).collection("messages")
+    await db.collection("contents").doc(this.indexModule.RoomId).collection("messages").orderBy("latestMessageTimeStamp")
       .onSnapshot((querySnapshot) => {
         this.messages = [];
         querySnapshot.forEach((doc) => {
           
           const data = doc.data();
+          console.log(data.latestMessageTimeStamp.toDate().toLocaleString("ja"));
+          
           this.messages.push({
             userId: data.userId,
+            name: data.name,
             content: data.message,
             timestamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja")
           });
@@ -79,36 +71,17 @@ export default class index extends Vue {
       })
   }
 
-  async getTargetName() {
-    const db = firebase.firestore();
-    await db.collection("users").doc()
-    .onSnapshot((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        this.overViewList.push({
-          roomId: data.roomId,
-          gender: data.gender,
-          name: data.name,
-          latestMessageTimeStamp: data.latestMessageTimeStamp.toDate().toLocaleString("ja"),
-          latestMessage: data.latestMessage
-        });
-      })
-    })
-  }
-
-
   async createMessage() {
     const db = firebase.firestore();
     let dbUsers = db.collection('contents').doc(this.indexModule.RoomId).collection("messages");
     await dbUsers
       .add({
         message: this.content,
+        name: this.indexModule.UserName,
         userId: this.indexModule.UserUid,
         latestMessageTimeStamp: firebase.firestore.FieldValue.serverTimestamp()
       })
   }
-
-
 }
 </script>
 
