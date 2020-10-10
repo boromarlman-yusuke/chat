@@ -25,6 +25,8 @@
             flat
             v-if="isSetting(item)"
           >
+            <setting>
+            </setting>
           </v-card>
 
           <v-card
@@ -84,6 +86,7 @@ import firebase from '@/plugins/firebase';
 import { getModule } from "vuex-module-decorators";
 import IndexState from '@/store/index';
 import Overview from '@/module/OverView';
+import setting from '@/components/setting';
 
 interface User {
   id: string;
@@ -91,7 +94,7 @@ interface User {
   gender: string;
 };
 
-@Component
+@Component({ components: {setting} })
 export default class index extends Vue {
   private indexModule = getModule(IndexState, this.$store);
 

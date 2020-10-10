@@ -43,6 +43,13 @@ export default class IndexState extends VuexModule {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider)
     .then((result) => {
+      const isFirstLogin = result.additionalUserInfo!.isNewUser;
+      if (isFirstLogin) {
+
+      } else {
+
+      }
+
       const userData = {
         id: result.user!.uid,
         name: result.user!.displayName,
@@ -52,7 +59,6 @@ export default class IndexState extends VuexModule {
       firebase.firestore().collection('users').doc(result.user!.uid).set(userData);
       this.setUserUid(userData.id!);
       this.setUserName(userData.name!);
-
 
     }).catch(error => {
       this.setErrorMessage = error.message;
